@@ -11,6 +11,8 @@ import (
 )
 
 func action(c *cli.Context) error {
+	fmt.Println("开始 ~/.zsh_history 历史记录去重")
+
 	content, err := readHistory()
 	if err != nil {
 		return err
@@ -19,10 +21,13 @@ func action(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println("原始记录数：", len(historyList))
+
 	sort.Slice(historyList, func(i, j int) bool {
 		return historyList[i].Ts < historyList[j].Ts
 	})
 	historyList = filterHistory(historyList)
+	fmt.Println("去重后记录数：", len(historyList))
 
 	return writeHistory(historyList)
 }
