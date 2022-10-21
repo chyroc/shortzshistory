@@ -92,25 +92,16 @@ func splitHistory(content string) ([]*History, error) {
 
 // 留下第一个，最后一个
 func filterHistory(historyList []*History) []*History {
-	tmp := map[string][]*History{}
-	for _, v := range historyList {
-		tmp[v.Cmd] = append(tmp[v.Cmd], v)
-	}
-
+	done := map[string]bool{}
 	res := make([]*History, 0)
-	// 留下第一个，最后一个
-	for _, v := range tmp {
-		if len(v) == 1 {
-			res = append(res, v[0])
-		} else {
-			res = append(res, v[0], v[len(v)-1])
+	for _, v := range historyList {
+		if done[v.Cmd] {
+			continue
 		}
+		done[v.Cmd] = true
+		res = append(res, v)
 	}
 
-	// 排序
-	sort.Slice(res, func(i, j int) bool {
-		return res[i].Ts < res[j].Ts
-	})
 	return res
 
 }
