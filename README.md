@@ -17,3 +17,7 @@ go install github.com/chyroc/shortzshistory@latest
 ```shell
 shortzshistory
 ```
+
+```shell
+shortzshistory --left cd,ls,mv,git
+```

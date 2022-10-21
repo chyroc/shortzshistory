@@ -10,8 +10,9 @@ import (
 	"strings"
 )
 
-func action(c *cli.Context) error {
+func action(left []string) error {
 	fmt.Println("开始 ~/.zsh_history 历史记录去重")
+	fmt.Println("left:", left)
 
 	content, err := readHistory()
 	if err != nil {
@@ -26,7 +27,7 @@ func action(c *cli.Context) error {
 	sort.Slice(historyList, func(i, j int) bool {
 		return historyList[i].Ts < historyList[j].Ts
 	})
-	historyList = filterHistory(historyList)
+	historyList = filterHistory(historyList, left)
 	fmt.Println("去重后记录数：", len(historyList))
 
 	return writeHistory(historyList)
@@ -91,11 +92,20 @@ func splitHistory(content string) ([]*History, error) {
 }
 
 // 留下第一个，最后一个
-func filterHistory(historyList []*History) []*History {
+func filterHistory(historyList []*History, left []string) []*History {
 	done := map[string]bool{}
 	res := make([]*History, 0)
 	for _, v := range historyList {
 		if done[v.Cmd] {
+			continue
+		}
+		skip := false
+		for _, vv := range left {
+			if strings.HasPrefix(v.Cmd, vv+" ") || v.Cmd == vv {
+				skip = true
+			}
+		}
+		if skip {
 			continue
 		}
 		done[v.Cmd] = true
@@ -110,8 +120,17 @@ var re = regexp.MustCompile(`: (\d+):(\d+);(.*)`)
 
 func main() {
 	app := &cli.App{
-		Name:   "shortzshistory",
-		Action: action,
+		Name: "shortzshistory",
+		Flags: []cli.Flag{
+			&cli.StringSliceFlag{
+				Name:  "left",
+				Usage: "remove word which start with <left>",
+			},
+		},
+		Action: func(c *cli.Context) error {
+			left := c.StringSlice("left")
+			return action(left)
+		},
 	}
 	err := app.Run(os.Args)
 	if err != nil {
